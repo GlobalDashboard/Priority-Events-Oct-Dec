@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0, viewport-fit=cover">
+<title>Priority Calendar · Oct – Dec 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --navy:#0D2340;--navy2:#1a3557;--amber:#F5A623;--amber-bg:#2a1f00;
+  --bg:#07111f;--card:#0f1e30;--border:#1a3050;--border2:#1e3a5f;
+  --t1:#f0f4fa;--t2:#a8bdd4;--t3:#7a96b2;
+  --red:#dc2626;--green:#059669;--blue:#2563eb;
+  --r:10px;--r2:14px;
+  --font:'Inter',system-ui,sans-serif;--mono:'SF Mono','JetBrains Mono',monospace;
+}
+html{font-size:14px}
+body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100vh;overscroll-behavior:none}
+
+/* ── LAYOUT ─────────────────────────────── */
+.shell{display:flex;flex-direction:column;min-height:100vh}
+
+/* TOP BAR */
+.topbar{background:var(--navy);height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;z-index:300;flex-shrink:0}
+.tb-brand{display:flex;align-items:center;gap:8px}
+.tb-pip{width:3px;height:20px;background:var(--amber);border-radius:2px;flex-shrink:0}
+.tb-title{color:#fff;font-size:14px;font-weight:600}
+.tb-period{font-size:11px;color:rgba(255,255,255,.45);margin-left:2px;display:none}
+.tb-actions{display:flex;align-items:center;gap:6px}
+.tb-search-btn{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:4px}
+.tb-filter-btn{background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.7);padding:6px 10px;border-radius:8px;font-size:12px;cursor:pointer;position:relative}
+.filter-dot{position:absolute;top:4px;right:4px;width:6px;height:6px;background:var(--amber);border-radius:50%;display:none}
+
+/* SEARCH BAR */
+.search-bar{background:var(--navy2);padding:8px 16px;display:none}
+.search-bar.open{display:block}
+.search-input{width:100%;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 12px;color:#fff;font-size:14px;outline:none}
+.search-input::placeholder{color:rgba(255,255,255,.4)}
+
+/* SUMMARY CARDS */
+.scard{background:var(--card);border-radius:var(--r);padding:12px 14px;border:1px solid var(--border);border-top:2.5px solid var(--amber)}
+.sc-label{font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--t2);margin-bottom:4px}
+.sc-val{font-size:20px;font-weight:700;color:var(--t1);line-height:1}
+.sc-sub{font-size:11px;color:var(--t2);margin-top:3px}
+.sc-high{color:var(--red) !important}
+
+/* FILTER PILLS ROW */
+.filter-row{padding:10px 12px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}
+.filter-row::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;font-size:12px;font-weight:500;padding:6px 13px;border-radius:20px;border:1px solid var(--border2);background:var(--card);color:var(--t2);cursor:pointer;white-space:nowrap;transition:all .12s}
+.pill.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* SECONDARY FILTER ROW */
+.filter-row2{padding:8px 12px 0;display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;flex-shrink:0}
+.filter-row2::-webkit-scrollbar{display:none}
+.sel-wrap{flex-shrink:0}
+select{font-size:12px;padding:5px 10px;border:1px solid var(--border2);border-radius:8px;background:var(--card);color:var(--t1);color-scheme:dark;outline:none;height:32px;cursor:pointer;-webkit-appearance:none;appearance:none;padding-right:22px;background-image:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%2710%27 viewBox=%270 0 10 10%27%3E%3Cpath d=%27M2 3l3 4 3-4%27 fill=%27none%27 stroke=%27%238fa3be%27 stroke-width=%271.5%27/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 6px center}
+
+/* GROUP TOGGLE */
+.group-row{padding:8px 12px 0;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.grp-label{font-size:11px;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.grp-btns{display:flex;background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0}
+.grp-btn{font-size:12px;font-weight:500;padding:5px 12px;border:none;background:transparent;cursor:pointer;color:var(--t2);border-right:1px solid var(--border)}
+.grp-btn:last-child{border-right:none}
+.grp-btn.active{background:var(--navy);color:#fff}
+.result-count{font-size:11px;color:var(--t2);margin-left:auto}
+
+/* DATE NAV SCROLL */
+.date-nav-wrap{padding:8px 12px 0;flex-shrink:0}
+.date-nav{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.date-nav::-webkit-scrollbar{display:none}
+.date-chip{flex-shrink:0;font-size:12px;font-weight:500;padding:5px 11px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--t2);cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.date-chip.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.date-cnt{font-size:10px;opacity:.7}
+
+/* EVENTS LIST */
+.events-wrap{padding:10px 12px 80px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+/* DATE GROUP HEADER */
+.dg-header{background:var(--navy);color:#fff;padding:8px 12px;border-radius:8px 8px 0 0;margin-top:10px;display:flex;justify-content:space-between;align-items:center}
+.dg-header:first-child{margin-top:0}
+.dg-date{font-size:13px;font-weight:600}
+.dg-count{font-size:11px;opacity:.55}
+
+/* REGION/CATEGORY SUB-HEADER */
+.sg-header{background:rgba(255,255,255,.04);padding:5px 12px;border-left:2px solid var(--border2);border-right:2px solid var(--border2);display:flex;justify-content:space-between}
+.sg-name{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--t2)}
+.sg-cnt{font-size:10px;color:var(--t2)}
+
+/* EVENT CARD */
+.event-card{background:var(--card);border-left:2px solid var(--border2);border-right:2px solid var(--border2);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:0}
+.event-card:last-child{border-radius:0 0 8px 8px;border-bottom:2px solid var(--border2)}
+.ec-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.ec-left{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.ec-name{font-size:13px;font-weight:500;color:var(--t1);line-height:1.3}
+.ec-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cbadge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.c-us{background:#1e3a6e;color:#93c5fd}
+.c-eu{background:#1e2d6e;color:#a5b4fc}
+.c-ca{background:#0f3d2b;color:#6ee7b7}
+.c-au{background:#3d2800;color:#fcd34d}
+.c-jp{background:#3d0f2b;color:#f9a8d4}
+.c-kr{background:#2d1e5c;color:#c4b5fd}.c-in{background:#3a2410;color:#fdba74}
+.c-cn{background:#3d1010;color:#fca5a5}
+.c-tw{background:#3d1f0a;color:#fdba74}
+.c-latam{background:#0f3d2b;color:#6ee7b7}
+.cattag{display:inline-block;font-size:10px;font-weight:500;padding:2px 6px;border-radius:4px;white-space:nowrap}
+.cat-Inflation{background:#3d1010;color:#fca5a5}
+.cat-Employment{background:#0a2e1e;color:#6ee7b7}
+.cat-GDP{background:#1a1e4a;color:#a5b4fc}
+.cat-Trade{background:#0c2a40;color:#7dd3fc}
+.cat-Manufacturing{background:#2e1f00;color:#fcd34d}
+.cat-Consumer{background:#280d40;color:#d8b4fe}
+.cat-Housing{background:#2e1500;color:#fdba74}
+.cat-Money{background:#0a2e1a;color:#86efac}
+.cat-Central{background:#2e2000;color:#fde68a}
+.cat-Business{background:#1e1040;color:#c4b5fd}
+.cat-CB{background:#2e1a00;color:#fcd34d}
+.cat-Services{background:#052a33;color:#67e8f9}
+.cat-Other{background:#1a2535;color:#6b7280}.cat-Political{background:#2a1540;color:#d8b4fe}.cat-Earnings{background:#0b2e2e;color:#5eead4}
+.ec-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.loc-time{font-size:10px;color:var(--t3);font-weight:400;margin-top:1px;white-space:nowrap}.data-row.prio td{background:rgba(245,166,35,.10)}.data-row.prio td:first-child{box-shadow:inset 3px 0 0 #F5A623}.data-row.prio .event-name{color:#fcd34d;font-weight:600}.event-card.prio{background:rgba(245,166,35,.10);box-shadow:inset 3px 0 0 #F5A623}.event-card.prio .ec-name{color:#fcd34d}.prio-star{color:#F5A623}.ec-time{text-align:right;font-size:11px;font-family:var(--mono);color:var(--t2);white-space:nowrap}
+.impact-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.imp-H{background:#3d1010;color:#fca5a5}
+.imp-M{background:#2e1f00;color:#fcd34d}
+.imp-L{background:#0a2e1a;color:#86efac}
+
+/* DATA ROW */
+.ec-data{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:rgba(255,255,255,.04);border-radius:6px;padding:7px 8px;margin-top:2px}
+.dc{display:flex;flex-direction:column;align-items:center;gap:1px}
+.dc-label{font-size:9px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--t3);opacity:.9}
+.dc-val{font-size:12px;font-family:var(--mono);font-weight:500;color:var(--t1)}
+.dc-val.muted{color:var(--t2)}
+
+/* PERIOD INLINE */
+.ec-period{font-size:10px;color:var(--t2);background:rgba(255,255,255,.07);padding:1px 5px;border-radius:3px;font-weight:500}
+
+/* IMPACT MINI BAR */
+.imp-bar-wrap{display:flex;align-items:center;gap:4px}
+.imp-bar{width:40px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+.imp-fill{height:100%;border-radius:2px}
+.imp-H .imp-fill{background:var(--red)}
+.imp-M .imp-fill, .imp-bar-wrap .imp-fill-M{background:var(--amber)}
+.imp-L .imp-fill, .imp-bar-wrap .imp-fill-L{background:var(--green)}
+.imp-fill-H{background:var(--red)}
+.imp-fill-M{background:var(--amber)}
+.imp-fill-L{background:var(--green)}
+.imp-num{font-size:10px;color:var(--t2);font-variant-numeric:tabular-nums}
+
+/* EMPTY */
+.empty{padding:60px 20px;text-align:center;color:var(--t3)}
+.empty p{font-size:14px;margin-top:8px}
+
+/* ── DESKTOP OVERRIDES ─────────────────── */
+@media(min-width:768px){
+  .tb-period{display:inline}
+    .filter-row{padding:12px 20px 0;gap:8px}
+  .filter-row2{padding:8px 20px 0;gap:8px}
+  .group-row{padding:8px 20px 0}
+  .date-nav-wrap{padding:10px 20px 0}
+  .events-wrap{padding:12px 20px 80px}
+  .ec-data{grid-template-columns:repeat(3,1fr)}
+}
+
+@media(min-width:1024px){
+  .shell{display:grid;grid-template-columns:220px 1fr;grid-template-rows:50px 1fr;min-height:100vh}
+  .topbar{grid-column:1/-1;grid-row:1}
+  .left-panel{grid-column:1;grid-row:2;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:50px;height:calc(100vh - 50px)}
+  .right-panel{grid-column:2;grid-row:2;display:flex;flex-direction:column;overflow:hidden;height:calc(100vh - 50px)}
+  .events-wrap{flex:1;overflow-y:auto;padding:12px 20px 20px}
+    .tb-search-btn,.tb-filter-btn{display:none}
+  .search-bar{display:none !important}
+  .desktop-search{display:flex !important}
+  .filter-row,.filter-row2,.group-row,.date-nav-wrap{flex-shrink:0}
+}
+
+/* Desktop left sidebar */
+.left-panel{display:none}
+@media(min-width:1024px){
+  .left-panel{display:block}
+  .mobile-date-nav{display:none}
+}
+.sb-section-head{padding:12px 16px 6px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);position:sticky;top:0;background:var(--card);border-bottom:1px solid var(--border)}
+.sb-date{padding:8px 16px;font-size:12.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-left:3px solid transparent;color:var(--t2);transition:all .1s}
+.sb-date:hover{background:rgba(255,255,255,.05);border-left-color:var(--border2)}
+.sb-date.active{background:rgba(13,35,64,.6);color:var(--navy);font-weight:600;border-left-color:var(--navy)}
+.sb-cnt{font-size:10px;background:#f0f3fa;padding:1px 7px;border-radius:10px;color:var(--t3)}
+.sb-date.active .sb-cnt{background:var(--navy);color:#fff}
+.sb-all-row{padding:10px 16px;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);background:rgba(255,255,255,.04)}
+
+/* Desktop top search */
+.desktop-search{display:none;align-items:center;gap:8px}
+.desktop-search input{font-size:12px;padding:5px 10px 5px 28px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.1);color:#fff;outline:none;width:200px}
+.desktop-search input::placeholder{color:rgba(255,255,255,.4)}
+.ds-icon{position:relative}
+.ds-icon input{padding-left:28px}
+
+/* ── DESKTOP DENSE TABLE VIEW ───────────── */
+@media(min-width:1024px){
+  .events-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--card);border-radius:var(--r);overflow:hidden}
+  .events-table thead th{
+    position:sticky;top:0;z-index:5;background:var(--navy);color:#fff;
+    font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+    padding:9px 10px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--border2)
+  }
+  .events-table thead th.num{text-align:right}
+  .events-table tbody tr.data-row{border-bottom:1px solid var(--border)}
+  .events-table tbody tr.data-row:hover{background:rgba(255,255,255,.05)}
+  .events-table tbody tr.tr-date-header td{
+    background:var(--navy2);color:#fff;font-size:12.5px;font-weight:600;padding:9px 10px;letter-spacing:.2px
+  }
+  .events-table tbody tr.tr-group-header td{
+    background:rgba(255,255,255,.05);color:var(--t2);
+    font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    padding:6px 10px;border-left:2px solid var(--border2);border-right:2px solid var(--border2)
+  }
+  .events-table td{padding:7px 10px;color:var(--t1);vertical-align:middle;white-space:nowrap}
+  .events-table td.num{text-align:right;font-family:var(--mono);color:var(--t2);font-size:12px}
+  .events-table td.event-name{white-space:normal;font-weight:500;min-width:240px}
+  .events-table td.ctry{white-space:nowrap}
+  .table-impact{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="tb-brand">
+    <div class="tb-pip"></div>
+    <span class="tb-title">Priority Calendar</span>
+    <span class="tb-period">&nbsp;·&nbsp; Fed · BOJ · US Midterms · Alphabet & Amazon Earnings · Oct–Dec 2026 · IST & local times</span>
+  </div>
+  <div class="desktop-search ds-icon" style="position:relative">
+    <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);opacity:.5" width="13" height="13" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" id="desktop-search" placeholder="Search events…" oninput="render()">
+  </div>
+  <div class="tb-actions">
+    <button class="tb-search-btn" onclick="toggleSearch()" id="mob-search-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </button>
+    <button class="tb-filter-btn" onclick="toggleFilterPanel()" id="mob-filter-btn">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+      <span class="filter-dot" id="filter-dot"></span>
+    </button>
+  </div>
+</div>
+
+<!-- MOBILE SEARCH -->
+<div class="search-bar" id="mob-search-bar">
+  <input type="text" class="search-input" id="mob-search" placeholder="Search events, countries…" oninput="render()">
+</div>
+
+<!-- LEFT PANEL (desktop) -->
+<div class="left-panel" id="left-panel">
+  <div class="sb-section-head">Dates</div>
+  <div id="desktop-date-nav"></div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right-panel" id="right-panel">
+
+  <!-- FILTER ROWS (always visible on mobile) -->
+  <div id="filter-panel">
+    <div class="filter-row" id="region-pills">
+      <button class="pill active" onclick="setRegion('all',this)">All regions</button>
+      <button class="pill" onclick="setRegion('North America',this)">N. America</button>
+      <button class="pill" onclick="setRegion('Asia-Pacific',this)">Asia-Pacific</button>
+      <button class="pill" onclick="setRegion('Latin America',this)">LATAM</button>
+      <button class="pill" onclick="setRegion('Euro Area',this)">Euro Area</button>
+    </div>
+    <div class="filter-row2">
+      <select id="sel-country" onchange="render()"><option value="">All countries</option></select>
+      <select id="sel-cat" onchange="render()"><option value="">All categories</option></select>
+      <select id="sel-impact" onchange="render()" style="display:none">
+        <option value="">All events</option>
+        <option value="prio">★ Priority only</option>
+      </select>
+    </div>
+    <div class="group-row">
+      <span class="grp-label">Group by</span>
+      <div class="grp-btns">
+        <button class="grp-btn active" onclick="setGroup('date',this)">Date</button>
+        <button class="grp-btn" onclick="setGroup('cat',this)">Category</button>
+        <button class="grp-btn" onclick="setGroup('country',this)">Country</button>
+      </div>
+      <span class="result-count" id="result-count"></span>
+    </div>
+    <!-- Mobile date chips -->
+    <div class="date-nav-wrap mobile-date-nav">
+      <div class="date-nav" id="mob-date-nav"></div>
+    </div>
+  </div>
+
+  <!-- EVENTS -->
+  <div class="events-wrap" id="events-wrap">
+    <div id="events-list"></div>
+    <div class="empty" id="empty-state" style="display:none">
+      <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" opacity=".4"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <p>No events match your filters.</p>
+    </div>
+  </div>
+
+</div><!-- end right-panel -->
+</div><!-- end shell -->
+
+<script>
+const DATA = [{"Date": "28-Oct-2026", "Time": "23:30", "Country": "United States", "Event": "Fed Monetary Policy Rate (Upper Bound)", "Period": "Oct-28", "Survey": "4.00%", "Actual": "--", "Prior": "4.00%", "Revised": "--", "Category": "Central Bank / Rates", "Local": "14:00 ET", "Priority": false}, {"Date": "28-Oct-2026", "Time": "~01:30 (29 Oct)", "Country": "United States", "Event": "Alphabet (Google) Earnings", "Period": "Q3", "Survey": "--", "Actual": "--", "Prior": "--", "Revised": "--", "Category": "Earnings", "Local": "~16:00 ET, after close", "Priority": false}, {"Date": "29-Oct-2026", "Time": "TBD", "Country": "United States", "Event": "Amazon Earnings (Date TBD)", "Period": "Q3", "Survey": "--", "Actual": "--", "Prior": "--", "Revised": "--", "Category": "Earnings", "Local": "TBD", "Priority": false}, {"Date": "30-Oct-2026", "Time": "~08:30", "Country": "Japan", "Event": "BOJ Monetary Policy Rate", "Period": "Oct-30", "Survey": "--", "Actual": "--", "Prior": "1.25%", "Revised": "--", "Category": "Central Bank / Rates", "Local": "~12:00 JST", "Priority": false}, {"Date": "04-Nov-2026", "Time": "From 05:30", "Country": "United States", "Event": "Midterm Elections (Results)", "Period": "—", "Survey": "--", "Actual": "--", "Prior": "--", "Revised": "--", "Category": "Political", "Local": "From 19:00 ET, 3 Nov", "Priority": false}, {"Date": "10-Dec-2026", "Time": "00:30", "Country": "United States", "Event": "Fed Monetary Policy Rate (Upper Bound)", "Period": "Dec-09", "Survey": "--", "Actual": "--", "Prior": "--", "Revised": "--", "Category": "Central Bank / Rates", "Local": "14:00 ET, 9 Dec", "Priority": false}, {"Date": "18-Dec-2026", "Time": "~08:30", "Country": "Japan", "Event": "BOJ Monetary Policy Rate", "Period": "Dec-18", "Survey": "--", "Actual": "--", "Prior": "--", "Revised": "--", "Category": "Central Bank / Rates", "Local": "~12:00 JST", "Priority": false}];
+
+const REGION_MAP={
+  'United States':'North America','Canada':'North America',
+  'Australia':'Asia-Pacific','Japan':'Asia-Pacific','South Korea':'Asia-Pacific',
+  'China':'Asia-Pacific','Taiwan':'Asia-Pacific',
+  'Brazil':'Latin America','Mexico':'Latin America','Argentina':'Latin America',
+  'Colombia':'Latin America','Chile':'Latin America','Peru':'Latin America',
+  'Venezuela':'Latin America','Paraguay':'Latin America','Uruguay':'Latin America',
+  'Euro Area':'Euro Area','India':'Asia-Pacific'
+};
+const FLAGS={'United States':'🇺🇸','Canada':'🇨🇦','Australia':'🇦🇺','Japan':'🇯🇵','South Korea':'🇰🇷','China':'🇨🇳','Taiwan':'🇹🇼','Brazil':'🇧🇷','Mexico':'🇲🇽','Argentina':'🇦🇷','Colombia':'🇨🇴','Chile':'🇨🇱','Peru':'🇵🇪','Venezuela':'🇻🇪','Paraguay':'🇵🇾','Uruguay':'🇺🇾','Euro Area':'🇪🇺','India':'🇮🇳'};
+const CBADGE={'United States':'c-us','Canada':'c-ca','Australia':'c-au','Japan':'c-jp','South Korea':'c-kr','China':'c-cn','Taiwan':'c-tw','Brazil':'c-latam','Mexico':'c-latam','Argentina':'c-latam','Colombia':'c-latam','Chile':'c-latam','Peru':'c-latam','Venezuela':'c-latam','Paraguay':'c-latam','Uruguay':'c-latam','Euro Area':'c-eu','India':'c-in'};
+
+const CAT_CSS={'Inflation':'cat-Inflation','Employment':'cat-Employment','GDP / Growth':'cat-GDP','Trade & Capital Flows':'cat-Trade','Manufacturing / PMI':'cat-Manufacturing','Consumer':'cat-Consumer','Housing & Construction':'cat-Housing','Money & Credit':'cat-Money','Central Bank / Rates':'cat-Central','Business Sentiment':'cat-Business','CB Survey / Comms':'cat-CB','Services & Output':'cat-Services','Other':'cat-Other','Fiscal':'cat-Central','Political':'cat-Political','Earnings':'cat-Earnings','Reserves':'cat-Other'};
+const CAT_SHORT={'Inflation':'Inflation','Employment':'Employment','GDP / Growth':'GDP','Trade & Capital Flows':'Trade','Manufacturing / PMI':'Mfg/PMI','Consumer':'Consumer','Housing & Construction':'Housing','Money & Credit':'Money','Central Bank / Rates':'CB Rates','Business Sentiment':'Biz Sentiment','CB Survey / Comms':'CB Comms','Services & Output':'Services','Other':'Other','Fiscal':'Fiscal','Political':'Political','Earnings':'Earnings','Reserves':'Reserves'};
+const CAT_ORDER=['Central Bank / Rates','Inflation','Employment','GDP / Growth','Trade & Capital Flows','Manufacturing / PMI','Consumer','Housing & Construction','Money & Credit','Business Sentiment','Services & Output','CB Survey / Comms','Political','Earnings','Fiscal','Reserves','Other'];
+const REG_ORDER=['North America','Asia-Pacific','Latin America','Euro Area'];
+
+let activeRegion='all',activeDate=null,groupBy='date';
+
+function parseDt(d){
+  if(!d) return 0;
+  const s=d.split('\u2013')[0].trim(),p=s.split('-');
+  const M={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  return p.length===3?new Date(+p[2],M[p[1]],+p[0]).getTime():0;
+}
+
+// Populate dropdowns
+const countries=[...new Set(DATA.map(r=>r.Country))].sort();
+const selC=document.getElementById('sel-country');
+countries.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=(FLAGS[c]||'')+' '+c;selC.appendChild(o);});
+const cats=[...new Set(DATA.map(r=>r.Category))];
+const selCat=document.getElementById('sel-cat');
+CAT_ORDER.filter(c=>cats.includes(c)).forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=CAT_SHORT[c]||c;selCat.appendChild(o);});
+
+function getSearch(){
+  const d=document.getElementById('desktop-search');
+  const m=document.getElementById('mob-search');
+  return (d&&d.value||m&&m.value||'').toLowerCase().trim();
+}
+
+function getFiltered(){
+  const country=selC.value,cat=selCat.value;
+  const impact=document.getElementById('sel-impact').value;
+  const q=getSearch();
+  return DATA.filter(r=>{
+    if(activeRegion!=='all'&&REGION_MAP[r.Country]!==activeRegion) return false;
+    if(country&&r.Country!==country) return false;
+    if(cat&&r.Category!==cat) return false;
+    if(impact==='high'&&r.Relevance<=85) return false;
+    if(impact==='med'&&(r.Relevance<50||r.Relevance>85)) return false;
+    if(impact==='low'&&r.Relevance>=50) return false;
+    if(impact==='prio'&&!r.Priority) return false;
+    if(activeDate&&r.Date!==activeDate) return false;
+    if(q&&!r.Event.toLowerCase().includes(q)&&!r.Country.toLowerCase().includes(q)&&!r.Category.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function impCls(v){return v>85?'H':v>=50?'M':'L';}
+
+
+function makeEventCard(r){
+  const bc=CBADGE[r.Country]||'c-latam';
+  const cc=CAT_CSS[r.Category]||'cat-Other';
+  const cs=CAT_SHORT[r.Category]||r.Category;
+  const ic=impCls(r.Relevance);
+
+  const hasData=r.Survey!='--'||r.Prior!='--';
+  const dataRow=hasData?`
+    <div class="ec-data">
+      <div class="dc"><span class="dc-label">Survey</span><span class="dc-val muted">${r.Survey}</span></div>
+      <div class="dc"><span class="dc-label">Prior</span><span class="dc-val muted">${r.Prior}</span></div>
+      <div class="dc"><span class="dc-label">Revised</span><span class="dc-val muted">${r.Revised}</span></div>
+    </div>`:'';
+  return `<div class="event-card${r.Priority?' prio':''}">
+    <div class="ec-top">
+      <div class="ec-left">
+        <div class="ec-name">${r.Priority?'<span class="prio-star">★</span> ':''}${r.Event}</div>
+        <div class="ec-meta">
+          <span class="cbadge ${bc}">${FLAGS[r.Country]||''} ${r.Country}</span>
+          <span class="cattag ${cc}">${cs}</span>
+          ${r.Period&&r.Period!='—'?`<span class="ec-period">${r.Period}</span>`:''}
+        </div>
+      </div>
+      <div class="ec-right">
+        <span class="ec-time">${r.Time||'TBD'} IST${r.Local?`<div class="loc-time">${r.Local}</div>`:''}</span>
+      </div>
+    </div>
+    ${dataRow}
+  </div>`;
+}
+
+function isDesktop(){ return window.innerWidth >= 1024; }
+
+function impactStyle(ic){
+  return ic==='H' ? 'background:#3d1010;color:#fca5a5' :
+         ic==='M' ? 'background:#2e1f00;color:#fcd34d' :
+                    'background:#0a2e1a;color:#86efac';
+}
+
+function tableHeaderRow(){
+  return `<thead><tr>
+    <th>Time (IST)<div class="loc-time">Local</div></th><th>Country</th><th>Event</th><th>Category</th><th>Period</th>
+    <th class="num">Survey</th><th class="num">Actual</th><th class="num">Prior</th><th class="num">Revised</th>
+  </tr></thead>`;
+}
+
+function makeEventRow(r){
+  const cc=CAT_CSS[r.Category]||'cat-Other';
+  const cs=CAT_SHORT[r.Category]||r.Category;
+  const ic=impCls(r.Relevance);
+  return `<tr class="data-row${r.Priority?' prio':''}">
+    <td>${r.Time||'TBD'}${r.Local?`<div class="loc-time">${r.Local}</div>`:''}</td>
+    <td class="ctry">${(FLAGS[r.Country]||'')} ${r.Country}</td>
+    <td class="event-name">${r.Priority?'<span class="prio-star">★</span> ':''}${r.Event}</td>
+    <td><span class="cattag ${cc}">${cs}</span></td>
+    <td>${r.Period&&r.Period!=='—'?r.Period:''}</td>
+    <td class="num">${r.Survey}</td>
+    <td class="num">${r.Actual}</td>
+    <td class="num">${r.Prior}</td>
+    <td class="num">${r.Revised}</td>
+  </tr>`;
+}
+
+function renderTableGroupDate(filtered){
+  const byDate={};
+  filtered.forEach(r=>{
+    if(!byDate[r.Date]) byDate[r.Date]={};
+    const reg=REGION_MAP[r.Country]||'Other';
+    if(!byDate[r.Date][reg]) byDate[r.Date][reg]=[];
+    byDate[r.Date][reg].push(r);
+  });
+  const sortedDates=Object.keys(byDate).sort((a,b)=>parseDt(a)-parseDt(b));
+  let rows='';
+  sortedDates.forEach(d=>{
+    const dayTotal=Object.values(byDate[d]).reduce((s,a)=>s+a.length,0);
+    rows+=`<tr class="tr-date-header"><td colspan="9">${d.replace('-2026','')} · ${dayTotal} event${dayTotal!==1?'s':''}</td></tr>`;
+    REG_ORDER.forEach(reg=>{
+      if(!byDate[d][reg]) return;
+      rows+=`<tr class="tr-group-header"><td colspan="9">${reg} · ${byDate[d][reg].length}</td></tr>`;
+      byDate[d][reg].forEach(r=>{rows+=makeEventRow(r);});
+    });
+  });
+  return `<table class="events-table">${tableHeaderRow()}<tbody>${rows}</tbody></table>`;
+}
+
+function renderTableGroupCat(filtered){
+  const byCat={};
+  filtered.forEach(r=>{if(!byCat[r.Category])byCat[r.Category]=[];byCat[r.Category].push(r);});
+  let rows='';
+  CAT_ORDER.filter(c=>byCat[c]).forEach(cat=>{
+    const items=byCat[cat].sort((a,b)=>parseDt(a.Date)-parseDt(b.Date));
+    rows+=`<tr class="tr-date-header"><td colspan="9">${cat} · ${items.length}</td></tr>`;
+    items.forEach(r=>{rows+=makeEventRow(r);});
+  });
+  return `<table class="events-table">${tableHeaderRow()}<tbody>${rows}</tbody></table>`;
+}
+
+function renderTableGroupCountry(filtered){
+  const byC={};
+  filtered.forEach(r=>{if(!byC[r.Country])byC[r.Country]=[];byC[r.Country].push(r);});
+  let rows='';
+  REG_ORDER.forEach(reg=>{
+    const regCs=Object.keys(byC).filter(c=>REGION_MAP[c]===reg).sort();
+    if(!regCs.length) return;
+    rows+=`<tr class="tr-date-header"><td colspan="9">${reg} · ${regCs.length} countries</td></tr>`;
+    regCs.forEach(country=>{
+      rows+=`<tr class="tr-group-header"><td colspan="9">${(FLAGS[country]||'')} ${country} · ${byC[country].length}</td></tr>`;
+      byC[country].sort((a,b)=>parseDt(a.Date)-parseDt(b.Date)).forEach(r=>{rows+=makeEventRow(r);});
+    });
+  });
+  return `<table class="events-table">${tableHeaderRow()}<tbody>${rows}</tbody></table>`;
+}
+
+function makeGroupHeader(label,count,isMain){
+  if(isMain) return `<div class="dg-header"><span class="dg-date">${label}</span><span class="dg-count">${count} event${count!==1?'s':''}</span></div>`;
+  return `<div class="sg-header"><span class="sg-name">${label}</span><span class="sg-cnt">${count}</span></div>`;
+}
+
+function renderGroupDate(filtered){
+  const byDate={};
+  filtered.forEach(r=>{
+    if(!byDate[r.Date]) byDate[r.Date]={};
+    const reg=REGION_MAP[r.Country]||'Other';
+    if(!byDate[r.Date][reg]) byDate[r.Date][reg]=[];
+    byDate[r.Date][reg].push(r);
+  });
+  const sortedDates=Object.keys(byDate).sort((a,b)=>parseDt(a)-parseDt(b));
+  let html='';
+  sortedDates.forEach(d=>{
+    const dayTotal=Object.values(byDate[d]).reduce((s,a)=>s+a.length,0);
+    html+=makeGroupHeader(d.replace('-2026',''),dayTotal,true);
+    REG_ORDER.forEach(reg=>{
+      if(!byDate[d][reg]) return;
+      html+=makeGroupHeader(reg,byDate[d][reg].length,false);
+      byDate[d][reg].forEach(r=>{html+=makeEventCard(r);});
+    });
+  });
+  return html;
+}
+
+function renderGroupCat(filtered){
+  const byCat={};
+  filtered.forEach(r=>{if(!byCat[r.Category])byCat[r.Category]=[];byCat[r.Category].push(r);});
+  let html='';
+  CAT_ORDER.filter(c=>byCat[c]).forEach(cat=>{
+    const items=byCat[cat].sort((a,b)=>parseDt(a.Date)-parseDt(b.Date));
+    html+=makeGroupHeader(cat,items.length,true);
+    items.forEach(r=>{html+=makeEventCard(r);});
+  });
+  return html;
+}
+
+function renderGroupCountry(filtered){
+  const byC={};
+  filtered.forEach(r=>{if(!byC[r.Country])byC[r.Country]=[];byC[r.Country].push(r);});
+  let html='';
+  REG_ORDER.forEach(reg=>{
+    const regCs=Object.keys(byC).filter(c=>REGION_MAP[c]===reg).sort();
+    if(!regCs.length) return;
+    html+=`<div class="dg-header" style="background:var(--navy2)"><span class="dg-date">${reg}</span><span class="dg-count">${regCs.length} countries</span></div>`;
+    regCs.forEach(country=>{
+      html+=makeGroupHeader((FLAGS[country]||'')+' '+country,byC[country].length,false);
+      byC[country].sort((a,b)=>parseDt(a.Date)-parseDt(b.Date)).forEach(r=>{html+=makeEventCard(r);});
+    });
+  });
+  return html;
+}
+
+function buildDateNavs(filtered){
+  const counts={};
+  filtered.forEach(r=>{counts[r.Date]=(counts[r.Date]||0)+1;});
+  const allDates=[...new Set(DATA.map(r=>r.Date))].sort((a,b)=>parseDt(a)-parseDt(b));
+
+  // Desktop sidebar
+  const dsb=document.getElementById('desktop-date-nav');
+  if(dsb){
+    let h=`<div class="sb-all-row" onclick="setDate(null)"><span>All dates</span><span class="sb-cnt">${filtered.length}</span></div>`;
+    allDates.forEach(d=>{
+      const cnt=counts[d]||0;
+      if(!cnt) return;
+      h+=`<div class="sb-date${activeDate===d?' active':''}" onclick="setDate('${d}')"><span>${d.replace('-2026','')}</span><span class="sb-cnt">${cnt}</span></div>`;
+    });
+    dsb.innerHTML=h;
+  }
+
+  // Mobile chips
+  const mob=document.getElementById('mob-date-nav');
+  if(mob){
+    let h=`<div class="date-chip${activeDate===null?' active':''}" onclick="setDate(null)">All <span class="date-cnt">${filtered.length}</span></div>`;
+    allDates.forEach(d=>{
+      const cnt=counts[d]||0;
+      if(!cnt) return;
+      h+=`<div class="date-chip${activeDate===d?' active':''}" onclick="setDate('${d}')">${d.replace('-2026','')} <span class="date-cnt">${cnt}</span></div>`;
+    });
+    mob.innerHTML=h;
+  }
+}
+
+function render(){
+  const filtered=getFiltered();
+  buildDateNavs(filtered);
+  const high=filtered.filter(r=>r.Relevance>85).length;
+  document.getElementById('result-count').textContent=filtered.length+' events';
+  const hasFilt=activeRegion!=='all'||activeDate||selC.value||selCat.value||document.getElementById('sel-impact').value||getSearch();
+  document.getElementById('filter-dot').style.display=hasFilt?'block':'none';
+  if(!filtered.length){document.getElementById('events-list').innerHTML='';document.getElementById('empty-state').style.display='block';return;}
+  document.getElementById('empty-state').style.display='none';
+  let html='';
+  if(isDesktop()){
+    if(groupBy==='date') html=renderTableGroupDate(filtered);
+    else if(groupBy==='cat') html=renderTableGroupCat(filtered);
+    else html=renderTableGroupCountry(filtered);
+  } else {
+    if(groupBy==='date') html=renderGroupDate(filtered);
+    else if(groupBy==='cat') html=renderGroupCat(filtered);
+    else html=renderGroupCountry(filtered);
+  }
+  document.getElementById('events-list').innerHTML=html;
+}
+
+let _wasDesktop=isDesktop();
+window.addEventListener('resize',()=>{
+  const nowDesktop=isDesktop();
+  if(nowDesktop!==_wasDesktop){ _wasDesktop=nowDesktop; render(); }
+});
+
+function setRegion(r,btn){
+  activeRegion=r;activeDate=null;
+  document.querySelectorAll('#region-pills .pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function setDate(d){activeDate=d;render();}
+function setGroup(g,btn){
+  groupBy=g;
+  document.querySelectorAll('.grp-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+function clearAll(){
+  activeRegion='all';activeDate=null;
+  selC.value='';selCat.value='';document.getElementById('sel-impact').value='';
+  const s1=document.getElementById('desktop-search');const s2=document.getElementById('mob-search');
+  if(s1)s1.value='';if(s2)s2.value='';
+  document.querySelectorAll('#region-pills .pill').forEach(b=>b.classList.remove('active'));
+  document.querySelector('#region-pills .pill').classList.add('active');
+  render();
+}
+function toggleSearch(){
+  const bar=document.getElementById('mob-search-bar');
+  bar.classList.toggle('open');
+  if(bar.classList.contains('open')) document.getElementById('mob-search').focus();
+}
+function toggleFilterPanel(){}
+
+
+
+render();
+</script>
+</body>
+</html>
